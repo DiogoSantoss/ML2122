@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import stats
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 
 y1_neg = np.array([0.6, 0.1, 0.2, 0.1])
 y1_pos = np.array([0.3, -0.1, -0.3, 0.2, 0.4, -0.2])
@@ -98,6 +98,7 @@ def printConfusionMatrix(true,pred):
     print("FN: " + str(fn))
     print("TP: " + str(tp))
     print("FP: " + str(fp))
+    return tn, fp, fn, tp
 
 
 if __name__ == "__main__":
@@ -121,9 +122,7 @@ if __name__ == "__main__":
                     miu_y34_pos, miu_y34_neg, 
                     cov_y34_pos, cov_y34_neg
                 )
-        print(
-            result, x_c[i]
-        )
         x_pred.append(result)
 
-    printConfusionMatrix(x_c,x_pred)
+    tn, fp, fn, tp = printConfusionMatrix(x_c,x_pred)
+    print("F1 Score: " + str(f1_score(x_c, x_pred)))
