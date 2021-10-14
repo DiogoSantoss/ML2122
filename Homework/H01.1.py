@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+from sklearn.metrics import confusion_matrix
 
 y1_neg = np.array([0.6, 0.1, 0.2, 0.1])
 y1_pos = np.array([0.3, -0.1, -0.3, 0.2, 0.4, -0.2])
@@ -44,11 +45,12 @@ def pred_c(
     miu_bi_pos, miu_bi_neg, 
     cov_bi_pos, cov_bi_neg
     ):
-    return "Positive" if prob(
+
+    return 1 if prob(
         x, p_pos, y2_pos, miu_uni_pos, cov_uni_pos, miu_bi_pos, cov_bi_pos
         ) > prob(
         x,  p_neg, y2_neg, miu_uni_neg, cov_uni_neg, miu_bi_neg, cov_bi_neg
-        ) else "Negative"
+        ) else 0
 
 
 def prob(x: np.array, p_c, y2_c, miu_uni, cov_uni, miu_bi, cov_bi):
@@ -65,6 +67,7 @@ def prob_y1(x, miu, cov):
 
 
 def prob_y2(x,y):
+    """probability of x in y set"""
     total = 0
     for i in range(len(y)):
         if x == y[i]:
@@ -87,3 +90,40 @@ def multivariate_normal(x: np.array, d, mean: np.array, covariance):
     x_m = x - mean
     return (1. / (np.sqrt((2 * np.pi)**d * np.linalg.det(covariance))) * 
             np.exp(-(np.linalg.solve(covariance, x_m).T.dot(x_m)) / 2))
+
+
+def printConfusionMatrix(true,pred):
+    tn, fp, fn, tp = confusion_matrix(true,pred).ravel()
+    print("TN: " + str(tn))
+    print("FN: " + str(fn))
+    print("TP: " + str(tp))
+    print("FP: " + str(fp))
+
+
+if __name__ == "__main__":
+
+    y1 = [0.6, 0.1, 0.2, 0.1,0.3, -0.1, -0.3, 0.2, 0.4, -0.2]
+    y2 = ["A", "B", "A", "C","B", "C", "C", "B", "A", "C"]
+    y3 = [0.2, -0.1, -0.1, 0.8,0.1, 0.2, -0.1, 0.5, -0.4, 0.4]
+    y4 = [0.4, -0.4, 0.2, 0.8,0.3, -0.2, 0.2, 0.6, -0.7, 0.3]
+
+    x_c = [0,0,0,0,1,1,1,1,1,1]
+    x_pred = []
+
+    for i in range(10):
+        x = [y1[i],y2[i],y3[i],y4[i]]
+        result = pred_c(
+                    x,
+                    p_pos,p_neg,
+                    y2_pos, y2_neg,
+                    miu_y1_pos, miu_y1_neg, 
+                    cov_y1_pos, cov_y1_neg,
+                    miu_y34_pos, miu_y34_neg, 
+                    cov_y34_pos, cov_y34_neg
+                )
+        print(
+            result, x_c[i]
+        )
+        x_pred.append(result)
+
+    printConfusionMatrix(x_c,x_pred)
