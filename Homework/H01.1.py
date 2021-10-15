@@ -46,11 +46,11 @@ def pred_c(
     cov_bi_pos, cov_bi_neg
     ):
 
-    return 1 if prob(
-        x, p_pos, y2_pos, miu_uni_pos, cov_uni_pos, miu_bi_pos, cov_bi_pos
-        ) > prob(
-        x,  p_neg, y2_neg, miu_uni_neg, cov_uni_neg, miu_bi_neg, cov_bi_neg
-        ) else 0
+    prob_num_pos = prob(x, p_pos, y2_pos, miu_uni_pos, cov_uni_pos, miu_bi_pos, cov_bi_pos)
+    prob_num_neg = prob(x,  p_neg, y2_neg, miu_uni_neg, cov_uni_neg, miu_bi_neg, cov_bi_neg)
+    prob_den = prob_num_pos + prob_num_neg
+    result = 1 if prob_num_pos > prob_num_neg else 0
+    return prob_num_pos/prob_den, result
 
 
 def prob(x: np.array, p_c, y2_c, miu_uni, cov_uni, miu_bi, cov_bi):
@@ -92,13 +92,32 @@ def multivariate_normal(x: np.array, d, mean: np.array, covariance):
             np.exp(-(np.linalg.solve(covariance, x_m).T.dot(x_m)) / 2))
 
 
-def printConfusionMatrix(true,pred):
+def print_confusion_matrix(true,pred):
     tn, fp, fn, tp = confusion_matrix(true,pred).ravel()
     print("TN: " + str(tn))
     print("FN: " + str(fn))
     print("TP: " + str(tp))
     print("FP: " + str(fp))
     return tn, fp, fn, tp
+
+def find_accuracies(probs_pos, x_c):
+    def predict(prob_pos, threshold):
+        return 1 if prob_pos > threshold else 0 #Should we use > or >=? Two different optimal thresholds will be returned that way 
+    size = len(probs_pos)
+    accuracies = []
+    best_accuracy = 0
+    for i in range(size):
+        x_pred = []
+        for j in range(size):
+            x_pred.append(predict(probs_pos[j], probs_pos[i])) #Find prediction of probs_pos[j] using probs_pos[i] as threshold
+        tn, fp, fn, tp = confusion_matrix(x_c,x_pred).ravel()
+        accuracy = (tn+tp)/size
+        accuracies.append(accuracy)
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_threshold = probs_pos[i]
+    print(accuracies)
+    print(best_threshold)
 
 
 if __name__ == "__main__":
@@ -111,9 +130,12 @@ if __name__ == "__main__":
     x_c = [0,0,0,0,1,1,1,1,1,1]
     x_pred = []
 
+    probs_pos = []
+    probs_neg = []
+
     for i in range(10):
         x = [y1[i],y2[i],y3[i],y4[i]]
-        result = pred_c(
+        prob_pos, result = pred_c(
                     x,
                     p_pos,p_neg,
                     y2_pos, y2_neg,
@@ -123,6 +145,9 @@ if __name__ == "__main__":
                     cov_y34_pos, cov_y34_neg
                 )
         x_pred.append(result)
-
-    tn, fp, fn, tp = printConfusionMatrix(x_c,x_pred)
+        probs_pos.append(prob_pos)
+    
+    tn, fp, fn, tp = print_confusion_matrix(x_c,x_pred)
     print("F1 Score: " + str(f1_score(x_c, x_pred)))
+    print(probs_pos)
+    find_accuracies(probs_pos, x_c)
