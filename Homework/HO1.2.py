@@ -7,27 +7,20 @@ df = pd.DataFrame(data[0])
 
 
 #############################################################################################
-import plotly.express as px
-from plotly.subplots import make_subplots
 
-#df.hist()
-#fig = make_subplots(rows=3,cols=3)
-#fig = px.histogram(df, x="Clump_Thickness")
-#fig.show()
+# separate dataframe in two
 mask = df["Class"].astype('string') == "b'benign'"
 df_ben = df[mask]
 df_mal = df[~mask]
-df_ben.hist(grid=False,layout=(3,3))
-df_mal.hist()
 
+# only works on jupyter
+df_ben.hist(grid=False,xlabelsize=10,layout=(3,3),figsize=(9,9))
+df_mal.hist(grid=False,xlabelsize=10,layout=(3,3),figsize=(9,9))  
 
 
 #############################################################################################
 from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier
-
-# to search by index use df.iloc[0] -> returns first line
-# to search by feature use df.loc
 
 features = [ 
     "Clump_Thickness", "Cell_Size_Uniformity", 
@@ -41,18 +34,24 @@ randomSeed = 6
 k_test = [3,5,7]
 fold_num = 10
 
+# creates folds
 kf = KFold(n_splits=fold_num,shuffle=True,random_state=randomSeed)
 
-for k in range(len(k_test)):
-    knn = KNeighborsClassifier(n_neighbors = k_test[k])
+# train knn for k={3,5,7}
+for k in k_test:
+    knn = KNeighborsClassifier(n_neighbors = k)
+    # each k will get an average score
     score_arr = []
     #train and test contain the index
     for train,test in kf.split(df):
 
         # create train dataframe
+        # from the train index creates df_train
         df_train = pd.DataFrame([df.iloc[i] for i in train])
+        # separate features from labels
         df_train_features = df_train.iloc[:,:-1]
         df_train_label = df_train.iloc[:,[-1]]
+        # transform label from words to binary values
         df_train_label_01 = [1 if (df_train_label.iloc[i].astype('string')=="b'benign'").bool() else 0 for i in range(len(df_train_label))]
 
 
@@ -63,19 +62,17 @@ for k in range(len(k_test)):
         df_test_label_01 = [1 if (df_test_label.iloc[i].astype('string')=="b'benign'").bool() else 0 for i in range(len(df_test_label))] 
 
         knn.fit(df_train_features.values,df_train_label_01)
-        result = knn.predict(df_test_features.values)
-        #print(result)
+        knn.predict(df_test_features.values)
         score = knn.score(df_test_features.values,df_test_label_01)
-        #print(score)
         score_arr.append(score)
 
-    median_score = 0
-    for i in range(len(score_arr)):
-        median_score += score_arr[i]
+    # get average score across all folds tested
+    average_score = 0
+    for i in score_arr:
+        average_score += i
+    average_score = average_score/len(score_arr)
 
-    print(k_test[k])
-    print(median_score/len(score_arr))
-
+    print(f"k={k}, with score={average_score}")
 
 # tried using transform to turn words into binary values, got errors 
 #df_test_label_01 = df_test_label.transform(lambda x : 1 if (x.astype('string')=="b'benign'").bool() else 0)
