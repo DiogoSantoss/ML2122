@@ -49,18 +49,14 @@ def pred_c(
     miu_bi_pos, miu_bi_neg, 
     cov_bi_pos, cov_bi_neg
     ):
-
-    print(f"x: {x}")
-
     # P(c)P(y1|c)P(y2|c)P(y3,y4|c)
     prob_num_pos = prob(x, p_pos, y2_pos, miu_uni_pos, cov_uni_pos, miu_bi_pos, cov_bi_pos)
-    print(f"x|c=1: {prob_num_pos}")
     prob_num_neg = prob(x, p_neg, y2_neg, miu_uni_neg, cov_uni_neg, miu_bi_neg, cov_bi_neg)
-    print(f"x|c=0: {prob_num_neg}")
+    #print(f"x|c=0: {prob_num_neg}")
+    #print(f"x|c=1: {prob_num_pos}")
 
     # P(y1,y2,y3,y4) = P(y1,y2,y3,y4 e c=0) + P(y1,y2,y3,y4 e c=1)
     prob_den = prob_num_pos + prob_num_neg
-    print(f"denominador: {prob_den}")
 
     result = 1 if prob_num_pos > prob_num_neg else 0
     return prob_num_pos/prob_den, result
@@ -69,18 +65,13 @@ def pred_c(
 def prob(x: np.array, p_c, y2_c, miu_uni, cov_uni, miu_bi, cov_bi):
 
     p_y1 = prob_y1(x[0],miu_uni,cov_uni)
-    print(f"p_y1: {p_y1}")
-    p_y2 = prob_y2(x[1],y2_c)  
-    print(f"p_y2: {p_y2}")
+    p_y2 = prob_y2(x[1],y2_c)
     p_y3y4 = prob_y3y4(x,2,miu_bi,cov_bi)
-    print(f"p_y3y4: {p_y3y4}")
 
     return p_c*p_y1*p_y2*p_y3y4
 
 
 def prob_y1(x, miu, cov):
-    print(f"miu: {miu}")
-    print(f"cov: {cov}")
     return univariate_normal(x,miu,cov)
 
 
@@ -94,8 +85,6 @@ def prob_y2(x,y):
 
 
 def prob_y3y4(x,d,miu,cov):
-    print(f"miu: {miu}")
-    print(f"cov: {cov}")
     return multivariate_normal(np.array([x[2],x[3]]), d, miu, cov)
 
 
@@ -142,7 +131,7 @@ def find_accuracies(probs_pos, x_c):
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_threshold = probs_pos[i]
-    print(accuracies)
+    print(f"Accuracies: {accuracies}")
     print(f"Best threshold: {best_threshold}")
 
 
@@ -158,6 +147,7 @@ if __name__ == "__main__":
 
     # probability of P(c=1|x)
     probs_pos = []
+    probs_neg = []
 
     for i in range(10):
         x = [y1[i],y2[i],y3[i],y4[i]]
@@ -173,8 +163,8 @@ if __name__ == "__main__":
         x_pred.append(result)
         probs_pos.append(prob_pos)
     
-    #tn, fp, fn, tp = print_confusion_matrix(x_c,x_pred)
-    #print("F1 Score: " + str(f1_score(x_c, x_pred)))
-    #print("P(c=1|x) for each x")
-    #print(probs_pos)
-    #find_accuracies(probs_pos, x_c)
+    tn, fp, fn, tp = print_confusion_matrix(x_c,x_pred)
+    print("F1 Score: " + str(f1_score(x_c, x_pred)))
+    print("P(c=1|x) for each x")
+    print(probs_pos)
+    find_accuracies(probs_pos, x_c)
