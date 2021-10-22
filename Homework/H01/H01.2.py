@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from scipy import stats
 from scipy.io import arff
 import pandas as pd
+import numpy as np
 
 ###############################################
 #                  READ DATA                  #
@@ -80,8 +81,8 @@ def knnVSnaive():
     knn_acc = classifier_accuracies(knn)
     naive_acc = classifier_accuracies(naive_bayes)
 
-    print(knn_acc)
-    print(naive_acc)
+    print(np.mean(knn_acc))
+    print(np.mean(naive_acc))
 
     _, pvalue = stats.ttest_rel(knn_acc, naive_acc, alternative="greater")
     print(pvalue)
