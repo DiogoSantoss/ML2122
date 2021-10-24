@@ -18,7 +18,6 @@ output_test = np.array([2,4])
 
 x_test = [[2,0,0],[1,2,1]]
 
-
 def applyPhi():
     for i in range(len(x_train)):
         x_train[i] = np.linalg.norm(x_train[i]) 
@@ -31,15 +30,8 @@ def getDesignMatrix():
     return np.array(x)
 
 def getWeights(designMatrix: np.array):
-
-    x = designMatrix
-    x_T = x.transpose()
-    # Compute (X^T * X)^-1
-    x_I = np.linalg.inv(np.dot(x_T,x))
-    # Compute X_I * X^T * Z
-    w = np.dot(np.dot(x_I,x_T),output_train)
-
-    return w
+    print(designMatrix)
+    return np.dot(np.linalg.pinv(designMatrix),output_train)
 
 def computePolynomialRegression(w, x):
     norm = np.linalg.norm(x)
@@ -48,29 +40,29 @@ def computePolynomialRegression(w, x):
 
 def testPolynomialRegression(w: np.array):
     #RMSE
+    print([computePolynomialRegression(w,x) for x in x_test])
     return sqrt(mean_squared_error(
         output_test,
         [computePolynomialRegression(w,x) for x in x_test],
     ))
 
-def binarizationY3():
+def binarization(y, threshold):
     result = []
-    for i in output_train:
-        if(i>=4):
+    for i in y:
+        if(i >= threshold):
             result.append(1)
         else:
             result.append(0)
     return result
 
-
 def IG(y: np.array):
     #def conditional_entropy(z, y):
         #return sum(relfreq())
     output_entropy = entropy(relfreq(output_train, numbins=8).frequency, base=2)
-    # IG(z|y1)=3/2
+    # IG(z|y1)=
     # IG(z|y2)=
     # IG(z|y3)=
-    print(output_entropy)
+    #print(output_entropy)
 
 
     
@@ -79,19 +71,23 @@ if __name__ == "__main__":
 
     applyPhi()
     x = getDesignMatrix()
-    print(x)
     w = getWeights(x)
-    print(w)
+    #print(w)
 
     f = testPolynomialRegression(w)
-    print(f) #1.2567231583983314
+    #print(f) #1.2567231583983314
 
-    y3_bin = binarizationY3()
-    print(y3_bin)
+    out_bin = binarization(output_train, 4)
+    y3_bin = binarization(y3_train, 5)
 
-    IG(y1_train)
-    IG(y2_train)
-    IG(y3_bin)
+    #print(out_bin)
+    #print(y3_bin)
+
+    IG(y1_train) # 0.3444
+    IG(y2_train) # 0.3113
+    IG(y3_bin)   # 0
+
+    # accuracy = 0
 
 
 
