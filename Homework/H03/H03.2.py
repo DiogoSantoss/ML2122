@@ -1,12 +1,8 @@
-from sklearn.feature_selection import mutual_info_classif, SelectKBest
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
 from scipy.io import arff
-from sklearn import tree
 import pandas as pd
-
 
 def loadDataFrame(file_name):
     #read data from given file
@@ -14,16 +10,12 @@ def loadDataFrame(file_name):
     df = pd.DataFrame(data[0])
     #correct reading of class values
     df['Class'] = df['Class'].str.decode('utf-8')
+    return df.values
 
-    return df
-
-def splitFeatureLabel(df, x):
-    x = pd.DataFrame([df.iloc[i] for i in x])
-    x_features = x.iloc[:,:-1]
-    x_label = x.iloc[:,[-1]]
-    x_label = [1 if elem == "malignant" else 0 for elem in x_label["Class"]]
-
-    return x_features, x_label
+def splitFeatureLabel(df):
+    df_features = [x.tolist()[:-1] for x in df]
+    df_labels = [x.tolist()[-1] for x in df]
+    return df_features, df_labels
 
 def print_confusion_matrix(true,pred):
     tn, fp, fn, tp = confusion_matrix(true,pred).ravel()
@@ -31,25 +23,32 @@ def print_confusion_matrix(true,pred):
     print("FN: " + str(fn))
     print("TP: " + str(tp))
     print("FP: " + str(fp))
-    return tn, fp, fn, tp
 
-def mlp_classifier(kf, df):
+def mlp_classifier(kf, x, y, clf):
     real = []
     predicted = []
-    for train, test in kf.split(df):
-        train_features, train_labels = splitFeatureLabel(df, train)
-        test_features, test_labels = splitFeatureLabel(df, test)
-        #como fazer o l2 com o alpha? i'm tired lol
-        #usar early_stopping = True/False
-        #diz que a otimização ainda n convergiu... hmmmm
-        clf = MLPClassifier(random_state = 1, hidden_layer_sizes = [3,2]).fit(train_features, train_labels)
-        real += clf.predict(test_features).tolist()
-        predicted += test_labels
+    for train_index, test_index in kf.split(x, y):
+        x_train, x_test = [x[i] for i in train_index], [x[i] for i in test_index]
+        y_train, y_test = [y[i] for i in train_index], [y[i] for i in test_index]
+        clf.fit(x_train, y_train)
+        predicted += clf.predict(x_test).tolist()
+        real += y_test
     print_confusion_matrix(real,predicted)
 
 
 if __name__ == "__main__":
     dfb = loadDataFrame('breast.w.arff')
-    kf = KFold(n_splits = 5, shuffle = True, random_state = 1)
-    mlp_classifier(kf, dfb)
-    
+    kf = StratifiedKFold(n_splits = 5, shuffle = True, random_state = 0)
+    features, labels = splitFeatureLabel(dfb)
+    clf_no_early_stop = MLPClassifier(
+            hidden_layer_sizes = (3,2),
+            activation = 'relu',
+            early_stopping = False)
+
+    clf_early_stop = MLPClassifier(
+            hidden_layer_sizes = (3,2),
+            activation = 'relu',
+            early_stopping = True)
+
+    #mlp_classifier(kf, features, labels, clf_no_early_stop)
+    mlp_classifier(kf, features, labels, clf_early_stop)
