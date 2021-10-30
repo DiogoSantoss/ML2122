@@ -1,54 +1,77 @@
-from sklearn.model_selection import StratifiedKFold
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import confusion_matrix
 from scipy.io import arff
 import pandas as pd
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.model_selection import StratifiedKFold, KFold, cross_val_predict
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
 
-def loadDataFrame(file_name):
+
+def loadDataFrame(file_name, flag):
     #read data from given file
     data = arff.loadarff(file_name)
     df = pd.DataFrame(data[0])
-    #correct reading of class values
-    df['Class'] = df['Class'].str.decode('utf-8')
-    return df.values
+    if flag:
+        #correct reading of class values
+        df['Class'] = df['Class'].str.decode('utf-8')
+    return df.values.tolist()
+
 
 def splitFeatureLabel(df):
-    df_features = [x.tolist()[:-1] for x in df]
-    df_labels = [x.tolist()[-1] for x in df]
+    df_features = [x[:-1] for x in df]
+    df_labels = [x[-1] for x in df]
+
     return df_features, df_labels
 
-def print_confusion_matrix(true,pred):
-    tn, fp, fn, tp = confusion_matrix(true,pred).ravel()
-    print("TN: " + str(tn))
-    print("FN: " + str(fn))
-    print("TP: " + str(tp))
-    print("FP: " + str(fp))
 
-def mlp_classifier(kf, x, y, clf):
-    real = []
-    predicted = []
-    for train_index, test_index in kf.split(x, y):
-        x_train, x_test = [x[i] for i in train_index], [x[i] for i in test_index]
-        y_train, y_test = [y[i] for i in train_index], [y[i] for i in test_index]
-        clf.fit(x_train, y_train)
-        predicted += clf.predict(x_test).tolist()
-        real += y_test
-    print_confusion_matrix(real,predicted)
+def predict(alpha, early_stopping, df_features, df_labels, cv, MLP):
+    clf = MLP(
+        hidden_layer_sizes = (3,2),
+        activation = 'relu',
+        alpha = alpha,
+        early_stopping = early_stopping,
+        random_state = 0) # CAN WE DO THIS ?
+            
+    return cross_val_predict(clf, df_features, df_labels, cv = cv)
+
+
+def computeConfusionMatrix():
+
+    def print_confusion_matrix(true,pred):
+        tn, fp, fn, tp = confusion_matrix(true,pred).ravel()
+        print("TN: " + str(tn))
+        print("FN: " + str(fn))
+        print("TP: " + str(tp))
+        print("FP: " + str(fp))
+
+    cv1 = StratifiedKFold(n_splits = 5, shuffle = True, random_state = 0)
+
+    df1 = loadDataFrame("breast.w.arff", True)
+    df1_features, df1_labels = splitFeatureLabel(df1)
+
+    pred_no_early_stopping = predict(54.5, False, df1_features, df1_labels, cv1, MLPClassifier)
+    print_confusion_matrix(df1_labels, pred_no_early_stopping)
+    print("------------------------")
+    pred_early_stopping = predict(134.0, True, df1_features, df1_labels, cv1, MLPClassifier)
+    print_confusion_matrix(df1_labels, pred_early_stopping)
+
+
+def computeBoxPlot():
+
+    cv2 = KFold(n_splits = 5, shuffle = True, random_state = 0)
+    df2 = loadDataFrame("kin8nm.arff", False)
+    df2_features, df2_labels = splitFeatureLabel(df2)
+
+    pred_no_reg = predict(0,False, df2_features, df2_labels, cv2, MLPRegressor)
+    residuals_no_reg = [df2_labels[i] - pred_no_reg[i] for i in range(len(pred_no_reg))]
+
+    pred_reg = predict(10, False, df2_features, df2_labels, cv2, MLPRegressor)
+    residuals_reg = [df2_labels[i] - pred_reg[i] for i in range(len(pred_reg))]                        
+
+    plt.boxplot([residuals_no_reg,residuals_reg], positions=[1, 2], labels=["no_reg","reg"])
+    plt.savefig("megaBox.png")
 
 
 if __name__ == "__main__":
-    dfb = loadDataFrame('breast.w.arff')
-    kf = StratifiedKFold(n_splits = 5, shuffle = True, random_state = 0)
-    features, labels = splitFeatureLabel(dfb)
-    clf_no_early_stop = MLPClassifier(
-            hidden_layer_sizes = (3,2),
-            activation = 'relu',
-            early_stopping = False)
 
-    clf_early_stop = MLPClassifier(
-            hidden_layer_sizes = (3,2),
-            activation = 'relu',
-            early_stopping = True)
-
-    #mlp_classifier(kf, features, labels, clf_no_early_stop)
-    mlp_classifier(kf, features, labels, clf_early_stop)
+    computeConfusionMatrix()
+    computeBoxPlot()
