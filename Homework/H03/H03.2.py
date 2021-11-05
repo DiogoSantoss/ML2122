@@ -1,12 +1,9 @@
-from scipy.io import arff
 import pandas as pd
+from scipy.io import arff
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.model_selection import StratifiedKFold, KFold, cross_val_predict
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.utils.validation import column_or_1d
-
 
 def loadDataFrame(file_name, flag):
     #read data from given file
@@ -83,5 +80,5 @@ def computeBoxPlot():
 
 if __name__ == "__main__":
 
-    #computeConfusionMatrix()
+    computeConfusionMatrix()
     computeBoxPlot()
