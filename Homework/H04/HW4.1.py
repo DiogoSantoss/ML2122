@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.typing import _128Bit
+import matplotlib.pyplot as plt
 
 cov1 = np.array([np.array([1,0]),np.array([0,1])])
 cov2 = np.array([np.array([2,0]),np.array([0,2])])
@@ -35,11 +35,14 @@ for i in range(len(X)):
     norm_post.append([joints[0]/np.sum(joints),joints[1]/np.sum(joints)])
 
 
+print(norm_post)
+
 posteriors = np.transpose(norm_post)
 print(posteriors)
 w1, w2 = np.sum(posteriors[0]), np.sum(posteriors[1])
 assert (w1+w2 == 4)
 new_prior1, new_prior2 = w1/4, w2/4
+
 
 new_mean1 = np.sum([posteriors[0][i]*X[i] for i in range(len(X))],axis=0)/w1
 new_mean2 = np.sum([posteriors[1][i]*X[i] for i in range(len(X))],axis=0)/w2
@@ -89,22 +92,47 @@ print(np.linalg.norm(X[2]-X[1])) # x3,x2 dist 6.0
 print(np.linalg.norm(X[3]-X[1])) # x4,x2 dist 6.4031242374328485
 
 # (3)
-
+# (a)
 # (i)   MLP with three hidden layers with as much nodes as the number of input variables
 # (ii)  Decision tree assuming input variables are discretized using three bins
 # (iii) Bayesian classifier with a multivariate Gaussian likelihood
 
 # (i) 
 # dVC(MLP) = numero de parametros
-# 5 -> 2 -> 2 -> 2 -> 2
-# 
-
+# 5    ->    5     ->    5    ->     5     ->    1
+# 2(m+1)*S*(log(S)+1) = 2(5+1)*3*(log(3)+1) = 53.1763651699
+#  m = numero de parametros/dimensionalidade     S = numero de hidden layers
+#                   
 # (ii)
-# dVC(tree) = 2^5
-
+# dVC(tree) = 2^m = 2^5 = 32
+#
 # (iii)
-# dVC(Bay) = numero de parametros
-# P(c=1|x) = P(c=1)N(x|miu,sigma) => 1 + 5 + 4 = 
-# P(c=0|x) = P(c=0)N(x|mu,sigma) => 0 + 5 + 4 = 
+# dVC(Bay) = numero de parametros = [1 ou 0 (se puder ser obtido por excl. partes)] + [#param miu + #param distintos sigma] = 
+#          = [1 ou 0] + [m + m(m+1)/2]*2
+# P(c=1|x) = P(c=1)N(x|miu,sigma) => 1 + 5 + 5*(5+1)/2 = 21
+# P(c=0|x) = P(c=0)N(x|miu,sigma) => 0 + 5 + 5*(5+1)/2 = 20
+# Total = 41
+
+# (b) e (c)
+
+def calculate_vc_dimensions(m, flag):
+    i = 2*(m+1)*3*(np.log(3)+1)
+    ii = 2**m
+    iii = 1 + (m+m*(m+1)/2)*2
+    plt.plot(m,i,label="MLP")
+    if flag:
+        plt.plot(m,ii,label="Decision Tree")
+    plt.plot(m,iii,label="Bayesian")
+    plt.legend(loc="upper left")
+    plt.show()
+    
+calculate_vc_dimensions(np.array([2,5,10,12,13]), True)
+calculate_vc_dimensions(np.array([2,5,10,30,100,300,1000]), False)
+
+
+
+
+
+
 
 
