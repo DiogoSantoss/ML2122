@@ -41,6 +41,7 @@ posteriors = np.transpose(norm_post)
 print(posteriors)
 w1, w2 = np.sum(posteriors[0]), np.sum(posteriors[1])
 assert (w1+w2 == 4)
+weights = [w1, w2]
 new_prior1, new_prior2 = w1/4, w2/4
 
 
@@ -52,9 +53,9 @@ new_sigma = []
 for i in range(len(new_mean)):
     new_sigma11 = new_sigma12 = new_sigma22 = 0
     for j in range(len(X)):
-        new_sigma11 += (posteriors[i][j]/w1)*(X[j][0]-new_mean[i][0])**2
-        new_sigma22 += (posteriors[i][j]/w1)*(X[j][1]-new_mean[i][1])**2
-        new_sigma12 += (posteriors[i][j]/w1)*(X[j][0]-new_mean[i][0])*(X[j][1]-new_mean[i][1])
+        new_sigma11 += (posteriors[i][j]/weights[i])*(X[j][0]-new_mean[i][0])**2
+        new_sigma22 += (posteriors[i][j]/weights[i])*(X[j][1]-new_mean[i][1])**2
+        new_sigma12 += (posteriors[i][j]/weights[i])*(X[j][0]-new_mean[i][0])*(X[j][1]-new_mean[i][1])
     new_sigma.append(np.array([[new_sigma11, new_sigma12], [new_sigma12, new_sigma22]]))
     print("New Sigma" + str(i+1) + ": " + str(new_sigma[i][0]) + "\n\t    " + str(new_sigma[i][1]))
 
