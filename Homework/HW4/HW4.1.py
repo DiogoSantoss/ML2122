@@ -47,6 +47,7 @@ print(weights, new_prior1, new_prior2)
 new_mean1 = np.sum([posteriors[0][i]*X[i] for i in range(len(X))],axis=0)/w1
 new_mean2 = np.sum([posteriors[1][i]*X[i] for i in range(len(X))],axis=0)/w2
 new_mean = [new_mean1, new_mean2]
+print("New means: " + str(new_mean))
 new_sigma = []
 
 for i in range(len(new_mean)):
@@ -100,8 +101,8 @@ print(np.linalg.norm(X[3]-X[1])) # x4,x2 dist 6.4031242374328485
 # (i) 
 # dVC(MLP) = numero de parametros
 # 5    ->    5     ->    5    ->     5     ->    1
-# 2(m+1)*S*(log(S)+1) = 2(5+1)*3*(log(3)+1) = 53.1763651699
-#  m = numero de parametros/dimensionalidade     S = numero de hidden layers
+# ( 5*5 + 1*5 )*3 + 5*1 + 1*1  = 96
+#   W     b          W     b
 #                   
 # (ii)
 # dVC(tree) = 2^m = 2^5 = 32
@@ -115,8 +116,8 @@ print(np.linalg.norm(X[3]-X[1])) # x4,x2 dist 6.4031242374328485
 
 # (b) e (c)
 
-def calculate_vc_dimensions(m, flag):
-    i = 2*(m+1)*3*(np.log(3)+1)
+def calculate_vc_dimensions(m, flag, file_name):
+    i = (m**2 + m)*3 + m + 1
     ii = 2**m
     iii = 1 + (m+m*(m+1)/2)*2
     plt.plot(m,i,label="MLP")
@@ -124,10 +125,12 @@ def calculate_vc_dimensions(m, flag):
         plt.plot(m,ii,label="Decision Tree")
     plt.plot(m,iii,label="Bayesian")
     plt.legend(loc="upper left")
+    plt.savefig(file_name)
     plt.show()
     
-calculate_vc_dimensions(np.array([2,5,10,12,13]), True)
-calculate_vc_dimensions(np.array([2,5,10,30,100,300,1000]), False)
+calculate_vc_dimensions(np.array([2,5,10,12,13]), True, "3b)")
+plt.clf()
+calculate_vc_dimensions(np.array([2,5,10,30,100,300,1000]), False, "3c)")
 
 
 
