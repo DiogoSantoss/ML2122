@@ -125,6 +125,8 @@ def calculate_vc_dimensions(m, flag, file_name):
         plt.plot(m,ii,label="Decision Tree")
     plt.plot(m,iii,label="Bayesian")
     plt.legend(loc="upper left")
+    plt.xlabel("Dimensionality")
+    plt.ylabel("VC dimension")
     plt.savefig(file_name)
     plt.show()
     
@@ -132,6 +134,12 @@ calculate_vc_dimensions(np.array([2,5,10,12,13]), True, "3b)")
 plt.clf()
 calculate_vc_dimensions(np.array([2,5,10,30,100,300,1000]), False, "3c)")
 
+# 3(b)
+# The decision tree vc dimension grows exponentially with the dimensionality 
+# while the MLP and Bayesian classifier grow polinomially 
+# 3(c)
+# Although both grow polinomially, the MLP classifier appears to grow faster
+# with the increase of the dimensionality
 
 def sketchCluster():
     
@@ -145,3 +153,4 @@ def sketchCluster():
     plt.show()
 
 sketchCluster()
+
