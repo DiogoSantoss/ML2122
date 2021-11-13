@@ -18,8 +18,6 @@ def mvn(x: np.array, d, mean: np.array, covariance):
     return (1. / (np.sqrt((2 * np.pi)**d * np.linalg.det(covariance))) * 
             np.exp(-(np.linalg.solve(covariance, x_m).T.dot(x_m)) / 2))
 
-likelihoods = []
-joint_prob = []
 norm_post = []
 
 for i in range(len(X)):
@@ -29,10 +27,11 @@ for i in range(len(X)):
     print("P(x" + str(i+1) + "| c=1) = " + str(mvn1))
     print("P(x" + str(i+1) + "| c=2) = " + str(mvn2))
 
-    likelihoods.append([mvn1,mvn2])
-    joints = [mvn1*prior1,mvn2*prior2]
-    joint_prob.append(joints)
-    norm_post.append([joints[0]/np.sum(joints),joints[1]/np.sum(joints)])
+    print("P(x" + str(i+1) + ", c=1) = " + str(mvn1*prior1))
+    print("P(x" + str(i+1) + ", c=2) = " + str(mvn2*prior2))
+
+    den = mvn1*prior1 + mvn2*prior2
+    norm_post.append([mvn1*prior1/den,mvn2*prior2/den])
 
 
 print(norm_post)
