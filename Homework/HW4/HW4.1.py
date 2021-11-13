@@ -133,9 +133,15 @@ plt.clf()
 calculate_vc_dimensions(np.array([2,5,10,30,100,300,1000]), False, "3c)")
 
 
+def sketchCluster():
+    
+    plt.scatter(x=2,y=4,color="blue")
+    plt.scatter(x=-1,y=-4,color="green")
+    plt.scatter(x=-1,y=2,color="blue")
+    plt.scatter(x=4,y=0,color="blue")
+    plt.xlabel("y1")
+    plt.ylabel("y2")
+    plt.savefig("sketch.png")
+    plt.show()
 
-
-
-
-
-
+sketchCluster()
