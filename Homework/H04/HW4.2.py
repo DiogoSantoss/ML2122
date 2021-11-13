@@ -41,8 +41,8 @@ def computeKMeansAndSilhouette(df_features):
         kmeans = KMeans(n_clusters=ki)
         kmeans_labels = kmeans.fit_predict(df_features)
         #print(kmeans_labels)
-        #print(silhouette_score(df_features, labels=kmeans_labels))
         print(findClustersAndECR(ki, kmeans_labels, df_labels))
+        print(silhouette_score(df_features, labels=kmeans_labels))
 
 
 if __name__ == "__main__":

@@ -42,7 +42,7 @@ w1, w2 = np.sum(posteriors[0]), np.sum(posteriors[1])
 assert (w1+w2 == 4)
 weights = [w1, w2]
 new_prior1, new_prior2 = w1/4, w2/4
-
+print(weights, new_prior1, new_prior2)
 
 new_mean1 = np.sum([posteriors[0][i]*X[i] for i in range(len(X))],axis=0)/w1
 new_mean2 = np.sum([posteriors[1][i]*X[i] for i in range(len(X))],axis=0)/w2
