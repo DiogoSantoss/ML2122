@@ -118,7 +118,7 @@ print(np.linalg.norm(X[3]-X[1])) # x4,x2 dist 6.4031242374328485
 
 def calculate_vc_dimensions(m, flag, file_name):
     i = (m**2 + m)*3 + m + 1
-    ii = 2**m
+    ii = 3**m
     iii = 1 + (m+m*(m+1)/2)*2
     plt.plot(m,i,label="MLP")
     if flag:
